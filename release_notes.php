@@ -284,6 +284,9 @@ if ((strpos($tag, 'rc') !== false) || (strpos($tag, 'beta'))) {
     // Decode the json and get its content
     $decoded = base64_decode(json_decode($meta_composer)->content);
 
+    $previous_meta = calculate_previous_beta($tag, $meta);
+    $previous_bundle_list = get_bundles_from_meta($meta, $previous_meta);
+
     // Get list of all bundles mentioned in the decoded composer.json
     $full_bundle_list = json_decode($decoded, JSON_OBJECT_AS_ARRAY)['require'];
     $filtered_bundle_list = [];
@@ -313,20 +316,24 @@ if ((strpos($tag, 'rc') !== false) || (strpos($tag, 'beta'))) {
         {
             // This bad hack ensures that both the old and new versions are nice and clean
             $old_version = calculate_beta($version, $repo);
-            $new_version = calculate_previous_beta($version, $repo);
+            $previous_version = calculate_previous_beta($version, $repo);
             $version = $old_version;
+
+            $output = [];
+            array_push($output, $repo, $version, $previous_version);
+            array_push($output_list, $output);
         }
         else{
-            $new_version = calculate_previous_final($version, $repo);
+            if ($version !== $previous_bundle_list[$repo]) {
+                $previous_version = $previous_bundle_list[$repo];
+                print_r($previous_version);
+
+                $output = [];
+                array_push($output, $repo, $version, $previous_version);
+                array_push($output_list, $output);
+            }
         }
-
-        $output = [];
-        array_push($output, $repo, $version, $new_version);
-        array_push($output_list, $output);
     }
-
-    // Previous meta here is not needed for packages, but for displaying in output file
-    $previous_meta = calculate_previous_beta($tag, $meta);
 }
 // For final version:
 else {
@@ -342,10 +349,10 @@ else {
             // If the version has changed for the current repository, add it to the list
             if ($version !== $filtered_previous_bundle_list[$repo]) {
 
-                $new_version = $filtered_previous_bundle_list[$repo];
+                $previous_version = $filtered_previous_bundle_list[$repo];
 
                 $output = [];
-                array_push($output, $repo, $version, $new_version);
+                array_push($output, $repo, $version, $previous_version);
                 array_push($output_list, $output);
             }
         }
