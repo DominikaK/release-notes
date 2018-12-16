@@ -53,8 +53,8 @@ function calculate_beta($version, $repo)
 // This does pretty much the same as calculate_beta, but I've run out of ideas
 function calculate_previous_beta($version, $repo)
 {
+    $version = calculate_beta($version, $repo);
      do {
-        $version = calculate_beta($version, $repo);
         $exploded_version = explode(".", $version);
         $index = array_search($exploded_version[2], $GLOBALS["version_sequence"]);
 
@@ -216,8 +216,8 @@ $repos_os = [
     "ezsystems/ezplatform-admin-ui-modules",
     "ezsystems/ezplatform-design-engine",
     "ezsystems/ezplatform-standard-design",
-    "ezsystems/ez-support-tools"
-    //"ezsystems/ezplatform-richtext"
+    "ezsystems/ez-support-tools",
+    "ezsystems/ezplatform-richtext"
 ];
 
 $repos_ee = [
@@ -228,7 +228,7 @@ $repos_ee = [
     "ezsystems/ezplatform-page-builder",
     "ezsystems/ezplatform-page-fieldtype",
     "ezsystems/flex-workflow",
-    //"ezsystems/ezplatform-workflow"
+    "ezsystems/ezplatform-workflow"
 ];
 
 if ($meta == "ezplatform") {
@@ -313,6 +313,8 @@ if ((strpos($tag, 'rc') !== false) || (strpos($tag, 'beta'))) {
     // Clean up the current version and calculate the previous one
     foreach ($filtered_bundle_list as $repo=>$version) {
         if ((strpos($version, 'rc') !== false) || (strpos($version, 'beta')))
+        // TODO cover situation when no rc2 for package was created
+        // and rc2 exists in meta
         {
             // This bad hack ensures that both the old and new versions are nice and clean
             $old_version = calculate_beta($version, $repo);
