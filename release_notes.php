@@ -16,53 +16,24 @@ function check_if_tag_exists($tag, $repo)
     }
 }
 
-
-
-// Calculates the newest beta/rc version from the version provided as "@beta" or "@rc"
-function calculate_beta($version, $repo)
-{
-    while (!check_if_tag_exists($version, $repo))
-    {
-        // Clean up the at sign
-        $version = str_replace("@rc", "-rc", $version);
-        $version = str_replace("@beta", "-beta", $version);
-
-        $exploded_version = explode(".", $version);
-
-        // Find the patch version number in the sequence of all patch version
-        $index = array_search($exploded_version[2], $GLOBALS["version_sequence"]);
-
-        if ($index < count($GLOBALS["version_sequence"]))
-        {
-            // Pick the next patch version in the sequence and glue the version again
-            $changed_version = $GLOBALS["version_sequence"][$index + 1];
-            $exploded_version[2] = $changed_version;
-            $version = implode(".", $exploded_version);
-        }
-        else {
-            //TODO maybe prompt for providing the version manually?
-            $version = null;
-            break;
-        }
-    }
-
-    return $version;
-}
-
 // Calculates the previous beta/rc version
-// This does pretty much the same as calculate_beta, but I've run out of ideas
 function calculate_previous_beta($version, $repo)
 {
-    $version = calculate_beta($version, $repo);
      do {
+         // Divide the version into pieces
         $exploded_version = explode(".", $version);
+
+        // Find the patch version in the sequence of all available patch versions
         $index = array_search($exploded_version[2], $GLOBALS["version_sequence"]);
 
         if ($index < count($GLOBALS["version_sequence"])-1) {
             $changed_version = $GLOBALS["version_sequence"][$index + 1];
             $exploded_version[2] = $changed_version;
             $version = implode(".", $exploded_version);
-        } else {
+        }
+        // If there is not lower patch version to pick,
+        // select the next lower final version
+        else {
             //TODO maybe prompt for providing the version manually?
             $patch = explode("-", $exploded_version[2]);
             $exploded_version[2] = $patch[0];
@@ -75,7 +46,6 @@ function calculate_previous_beta($version, $repo)
 
     return $version;
 }
-
 
 // Calculates the previous version for a final (non-beta/rc) version
 function calculate_previous_final($version, $repo)
@@ -125,38 +95,26 @@ function get_list_of_tags($repo)
     return $list_of_tags;
 }
 
-// Gets list of bundles and version from a meta-repository's composer.json
+// Gets list of bundles and version from a meta-repository's composer.lock
 function get_bundles_from_meta($meta, $tag)
 {
     // Get meta tag composer.json from GitHub
-    $meta_composer = get_from_github("https://api.github.com/repos/ezsystems/$meta/contents/composer.json?ref=v$tag");
+    $meta_composer = get_from_github("https://api.github.com/repos/ezsystems/$meta/contents/composer.lock?ref=v$tag");
     // Decode the json and get its content
     $decoded = base64_decode(json_decode($meta_composer)->content);
 
-    // Get list of all bundles mentioned in the decoded composer.json
-    $full_bundle_list = json_decode($decoded, JSON_OBJECT_AS_ARRAY)['require'];
+    // Get list of all bundles mentioned in the decoded composer.lock
+    $raw_bundle_list = json_decode($decoded, JSON_OBJECT_AS_ARRAY)['packages'];
     $filtered_bundle_list = [];
 
-    // Go through all bundles and find the ones on our list
-    foreach ($full_bundle_list as $repo => $version) {
-        if (in_array($repo, $GLOBALS["repos_to_check"])) {
-            $repo = str_replace("ezsystems/", "", $repo);
-            $filtered_bundle_list += [$repo => $version];
+    foreach ($raw_bundle_list as $repo)
+    {
+        if (in_array($repo['name'], $GLOBALS["repos_to_check"]))
+        {
+            $repo_name = str_replace("ezsystems/", "", $repo['name']);
+            $filtered_bundle_list += [$repo_name => $repo['version']];
         }
     }
-
-    // Strip tilde and caret from version number
-    foreach ($filtered_bundle_list as $repo => $version) {
-        // Strip tilde and caret from version number
-        if (strpos($version, '~') !== false) {
-            $version = str_replace("~", "", $version);
-        }
-        if (strpos($version, '^') !== false) {
-            $version = str_replace("^", "", $version);
-        }
-        $filtered_bundle_list[$repo] = $version;
-    }
-
     return $filtered_bundle_list;
 }
 
@@ -191,8 +149,8 @@ if ($tag[0] = "v")
 // There must be a smarter way to do this
 $version_sequence_patch = [
     "",
-    "-rc", "-rc3", "-rc2", "-rc1",
-    "-beta", "-beta3", "-beta2", "-beta1"
+    "-rc3", "-rc2", "-rc1",
+    "-beta3", "-beta2", "-beta1"
 ];
 
 $version_sequence = [];
@@ -275,91 +233,31 @@ $failed_tickets = [];
 // because it could not figure out the current or the previous version
 $failed_repositories = [];
 
-// Figure out the version numbers to check
-// beta/rc and final versions have to be treated differently
-// For beta/rc:
-if ((strpos($tag, 'rc') !== false) || (strpos($tag, 'beta'))) {
-    // Get meta tag composer.json from GitHub
-    $meta_composer = get_from_github("https://api.github.com/repos/ezsystems/$meta/contents/composer.json?ref=v$tag");
-    // Decode the json and get its content
-    $decoded = base64_decode(json_decode($meta_composer)->content);
+$bundle_list = get_bundles_from_meta($meta, $tag);
 
+// Determine previous meta-repository version for beta/rc:
+if ((strpos($tag, 'rc') !== false) || (strpos($tag, 'beta')))
+{
     $previous_meta = calculate_previous_beta($tag, $meta);
-    $previous_bundle_list = get_bundles_from_meta($meta, $previous_meta);
-
-    // Get list of all bundles mentioned in the decoded composer.json
-    $full_bundle_list = json_decode($decoded, JSON_OBJECT_AS_ARRAY)['require'];
-    $filtered_bundle_list = [];
-
-    // Go through bundle list and filter the ones that are on the list
-    foreach ($full_bundle_list as $repo=>$version) {
-        if (in_array($repo, $GLOBALS["repos_to_check"])) {
-            $repo = str_replace("ezsystems/", "", $repo);
-            $filtered_bundle_list += [$repo => $version];
-        }
-    }
-
-    // Strip tilde and caret from version number
-    foreach ($filtered_bundle_list as $repo=>$version) {
-        if (strpos($version, '~') !== false) {
-            $version = str_replace("~", "", $version);
-        }
-        if (strpos($version, '^') !== false) {
-            $version = str_replace("^", "", $version);
-        }
-        $filtered_bundle_list[$repo] = $version;
-    }
-
-    // Clean up the current version and calculate the previous one
-    foreach ($filtered_bundle_list as $repo=>$version) {
-        if ((strpos($version, 'rc') !== false) || (strpos($version, 'beta')))
-        // TODO cover situation when no rc2 for package was created
-        // and rc2 exists in meta
-        {
-            // This bad hack ensures that both the old and new versions are nice and clean
-            $old_version = calculate_beta($version, $repo);
-            $previous_version = calculate_previous_beta($version, $repo);
-            $version = $old_version;
-
-            $output = [];
-            array_push($output, $repo, $version, $previous_version);
-            array_push($output_list, $output);
-        }
-        else{
-            if ($version !== $previous_bundle_list[$repo]) {
-                $previous_version = $previous_bundle_list[$repo];
-                print_r($previous_version);
-
-                $output = [];
-                array_push($output, $repo, $version, $previous_version);
-                array_push($output_list, $output);
-            }
-        }
-    }
 }
-// For final version:
+// Determine previous meta-repository version for final tag:
 else {
     $previous_meta = calculate_previous_final($tag, $meta);
+}
 
-    $filtered_bundle_list = get_bundles_from_meta($meta, $tag);
-    $filtered_previous_bundle_list = get_bundles_from_meta($meta, $previous_meta);
+$previous_bundle_list = get_bundles_from_meta($meta, $previous_meta);
+
+foreach ($bundle_list as $repo => $version) {
+    $previous_version = $previous_bundle_list[$repo];
+
     $output = [];
-
-    // Find current and previous version for each repo and output it
-    foreach ($filtered_bundle_list as $repo => $version) {
-        if ($version !== null && array_key_exists($repo, $filtered_previous_bundle_list)) {
-            // If the version has changed for the current repository, add it to the list
-            if ($version !== $filtered_previous_bundle_list[$repo]) {
-
-                $previous_version = $filtered_previous_bundle_list[$repo];
-
-                $output = [];
-                array_push($output, $repo, $version, $previous_version);
-                array_push($output_list, $output);
-            }
-        }
+    if ($version !== $previous_version) {
+        array_push($output, $repo, $version, $previous_version);
+        array_push($output_list, $output);
     }
 }
+
+print_r($output_list);
 
 // Now we start getting the actual release notes
 
@@ -375,8 +273,6 @@ $ffinal = fopen($final, "w+");
 
 fwrite($ffinal, "Change log:\n\n");
 
-
-//TODO calculate previous_meta in case of a beta/rc meta tag
 fwrite($ffinal, "Changes since " . $previous_meta . "\n\n");
 
 foreach ($rn_list as $repo_rn)
@@ -396,7 +292,6 @@ if (!empty($failed_tickets))
     {
         print_r($repository . ": " . $ticket . "\n");
     }
-
 }
 
 // Print out repositories the script couldn't get info for, if there are any
@@ -407,7 +302,6 @@ if (!empty($failed_repositories))
     {
         print_r($repository . "\n");
     }
-
 }
 
 fclose($ffinal);

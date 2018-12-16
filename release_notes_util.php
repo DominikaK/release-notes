@@ -28,7 +28,7 @@ function create_release_notes ($repo)
     print_r("\n" . $repository . ":\n");
 
     // Create compare file for the current repository
-    $compare_file = "https://api.github.com/repos/ezsystems/$repository/compare/v$from_version...v$to_version";
+    $compare_file = "https://api.github.com/repos/ezsystems/$repository/compare/$from_version...$to_version";
 
     $json_output = json_decode(get_from_github($compare_file));
 
