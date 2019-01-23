@@ -257,8 +257,6 @@ foreach ($bundle_list as $repo => $version) {
     }
 }
 
-print_r($output_list);
-
 // Now we start getting the actual release notes
 
 $rn_list = [];
