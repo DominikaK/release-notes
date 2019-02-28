@@ -273,6 +273,10 @@ fwrite($ffinal, "Change log:\n\n");
 
 fwrite($ffinal, "Changes since " . $previous_meta . "\n\n");
 
+if ($meta == "ezplatformee" || $meta == "ezplatform-ee") {
+    fwrite($ffinal, "Corresponding eZ Platform release: https://github.com/ezsystems/ezplatform/releases/tag/v". $tag . "\n\n");
+}
+
 foreach ($rn_list as $repo_rn)
 {
     $current_repo_rn = file_get_contents($repo_rn);
