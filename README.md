@@ -31,8 +31,4 @@ To create release notes for a single repository (not a meta), run:
 
 For example:
 
-`php release_notes_single.php ezpublish-kernel 7.3.0 7.2.0`
-
-**Note**
-
-- The script currently works only for the *latest* beta or rc release. If there is both a `-beta1` and `-beta2` tag, the script will produce correct release notes for `-beta1`.
+`php release_notes_single.php ezpublish-kernel v7.3.0 v7.2.0`
