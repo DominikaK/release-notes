@@ -175,7 +175,9 @@ $repos_os = [
     "ezsystems/ezplatform-design-engine",
     "ezsystems/ezplatform-standard-design",
     "ezsystems/ez-support-tools",
-    "ezsystems/ezplatform-richtext"
+    "ezsystems/ezplatform-richtext",
+    "ezsystems/ezplatform-graphql",
+    "ezsystems/ezplatform-user"
 ];
 
 $repos_ee = [
