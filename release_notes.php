@@ -177,7 +177,8 @@ $repos_os = [
     "ezsystems/ez-support-tools",
     "ezsystems/ezplatform-richtext",
     "ezsystems/ezplatform-graphql",
-    "ezsystems/ezplatform-user"
+    "ezsystems/ezplatform-user",
+    "ezsystems/doctrine-dbal-schema"
 ];
 
 $repos_ee = [
