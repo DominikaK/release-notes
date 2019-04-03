@@ -1,5 +1,13 @@
 <?php
 
+
+// Array of JIRA ticket the script could not get information from
+$failed_tickets = [];
+
+// Array of repositories the script could not get information from
+// because it could not figure out the current or the previous version
+$failed_repositories = [];
+
 // Gets a file from GitHub
 function get_from_github($file) {
     // From https://stackoverflow.com/a/23391557/7482889
