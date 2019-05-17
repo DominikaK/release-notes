@@ -14,7 +14,11 @@ Place the token in a file named `token.txt` in the script's folder.
 
 ## Usage
 
-To get full release notes for a tag in a meta-repository, run:
+Use the scripts via Command Prompt (Windows) or Terminal (macOS).
+
+### Release notes for a meta-repository
+
+To get full release notes for a tag in a meta-repository, enter the directory containing the script and run:
 
 `php release_notes.php <meta-repository-name> <new tag> <previous tag>`
 
@@ -29,7 +33,7 @@ as well as a separate file for the meta-repository.
 
 ### Release notes for a single repository
 
-To create release notes for a single repository (not a meta), run:
+To create release notes for a single repository (not a meta), enter the directory containing the script and run:
 
 `php release_notes_single.php <repository> <current-version> <version-to-compare-with>`
 
