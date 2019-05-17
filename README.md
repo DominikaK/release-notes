@@ -26,7 +26,7 @@ For example:
 
 `php release_notes.php ezplatform v2.3.0`
 
-`php release_notes.php ezplatform v1.7.9-rc1 v.1.7.8`
+`php release_notes.php ezplatform v1.7.9-rc1 v1.7.8`
 
 The script will produce a file for each component repository we cover in release notes,
 as well as a separate file for the meta-repository.
