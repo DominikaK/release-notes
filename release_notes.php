@@ -239,7 +239,11 @@ $failed_repositories = [];
 $bundle_list = get_bundles_from_meta($meta, $tag);
 
 // Determine previous meta-repository version for beta/rc:
-if ((strpos($tag, 'rc') !== false) || (strpos($tag, 'beta')))
+if (count($argv)==4) {
+    // Use previous version provided as arguments, if it exists
+    $previous_meta = substr($argv[3], 1);
+}
+elseif ((strpos($tag, 'rc') !== false) || (strpos($tag, 'beta')))
 {
     $previous_meta = calculate_previous_beta($tag, $meta);
 }
