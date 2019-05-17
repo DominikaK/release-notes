@@ -24,7 +24,7 @@ To get full release notes for a tag in a meta-repository, enter the directory co
 
 For example:
 
-`php release_notes.php ezplatform v2.3.0`
+`php release_notes.php ezplatform v2.3.0 v2.2.0`
 
 `php release_notes.php ezplatform v1.7.9-rc1 v1.7.8`
 
