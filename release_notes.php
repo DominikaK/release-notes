@@ -172,13 +172,17 @@ $repos_os = [
     "ezsystems/ezplatform-solr-search-engine",
     "ezsystems/ezplatform-http-cache",
     "ezsystems/ezplatform-admin-ui-modules",
+    "ezsystems/ezplatform-core",
+    "ezsystems/ezplatform-rest",
     "ezsystems/ezplatform-design-engine",
     "ezsystems/ezplatform-standard-design",
     "ezsystems/ez-support-tools",
     "ezsystems/ezplatform-richtext",
     "ezsystems/ezplatform-graphql",
     "ezsystems/ezplatform-user",
-    "ezsystems/doctrine-dbal-schema"
+    "ezsystems/doctrine-dbal-schema",
+    "ezsystems/ezplatform-matrix-fieldtype",
+    "ezsystems/ezplatform-content-forms"
 ];
 
 $repos_ee = [
@@ -189,7 +193,8 @@ $repos_ee = [
     "ezsystems/ezplatform-page-builder",
     "ezsystems/ezplatform-page-fieldtype",
     "ezsystems/flex-workflow",
-    "ezsystems/ezplatform-workflow"
+    "ezsystems/ezplatform-workflow",
+    "ezsystems/ezplatform-calendar"
 ];
 
 if ($meta == "ezplatform") {
