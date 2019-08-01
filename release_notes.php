@@ -7,11 +7,9 @@ function check_if_tag_exists($tag, $repo)
 {
     $list_for_current_repo = $GLOBALS["list_of_tags"][$repo];
 
-    if (in_array($tag, $list_for_current_repo))
-    {
+    if (in_array($tag, $list_for_current_repo)) {
         return true;
-    }
-    else {
+    } else {
         return false;
     }
 }
@@ -19,14 +17,14 @@ function check_if_tag_exists($tag, $repo)
 // Calculates the previous beta/rc version
 function calculate_previous_beta($version, $repo)
 {
-     do {
-         // Divide the version into pieces
+    do {
+        // Divide the version into pieces
         $exploded_version = explode(".", $version);
 
         // Find the patch version in the sequence of all available patch versions
         $index = array_search($exploded_version[2], $GLOBALS["version_sequence"]);
 
-        if ($index < count($GLOBALS["version_sequence"])-1) {
+        if ($index < count($GLOBALS["version_sequence"]) - 1) {
             $changed_version = $GLOBALS["version_sequence"][$index + 1];
             $exploded_version[2] = $changed_version;
             $version = implode(".", $exploded_version);
@@ -41,8 +39,7 @@ function calculate_previous_beta($version, $repo)
             $version = calculate_previous_final($version, $repo);
             break;
         }
-    }
-    while (!check_if_tag_exists($version, $repo));
+    } while (!check_if_tag_exists($version, $repo));
 
     return $version;
 }
@@ -55,8 +52,7 @@ function calculate_previous_final($version, $repo)
         $version_number = explode(".", $version);
 
         // Change major/minor/patch versions to the previous version
-        if ($version_number[2] != "0")
-        {
+        if ($version_number[2] != "0") {
             $version_number[2]--;
         } elseif ($version_number[1] != "0") {
             $version_number[1]--;
@@ -72,8 +68,7 @@ function calculate_previous_final($version, $repo)
         // Glue the version together
         $version = implode(".", $version_number);
 
-    }
-    while (!check_if_tag_exists($version, $repo));
+    } while (!check_if_tag_exists($version, $repo));
 
     return $version;
 }
@@ -85,8 +80,7 @@ function get_list_of_tags($repo)
 
     $raw_list_of_tags = json_decode($tags, JSON_OBJECT_AS_ARRAY);
     $list_of_tags = [];
-    foreach ($raw_list_of_tags as $tag)
-    {
+    foreach ($raw_list_of_tags as $tag) {
         $tag_ref = $tag["ref"];
         $tag = str_replace("refs/tags/v", "", $tag_ref);
         array_push($list_of_tags, $tag);
@@ -107,15 +101,26 @@ function get_bundles_from_meta($meta, $tag)
     $raw_bundle_list = json_decode($decoded, JSON_OBJECT_AS_ARRAY)['packages'];
     $filtered_bundle_list = [];
 
-    foreach ($raw_bundle_list as $repo)
-    {
-        if (in_array($repo['name'], $GLOBALS["repos_to_check"]))
-        {
+    foreach ($raw_bundle_list as $repo) {
+        if (in_array($repo['name'], $GLOBALS["repos_to_check"])) {
             $repo_name = str_replace("ezsystems/", "", $repo['name']);
-            $filtered_bundle_list += [$repo_name => $repo['version']];
+            $version = strip_version($repo['version']);
+            $filtered_bundle_list += [$repo_name => $version];
         }
     }
     return $filtered_bundle_list;
+}
+
+function calculate_previous($version, $repo)
+{
+    if ((strpos($version, 'rc') !== false) || (strpos($version, 'beta'))) {
+        $previous_version = calculate_previous_beta($version, $repo);
+    } // Determine previous meta-repository version for final tag:
+    else {
+        $previous_version = calculate_previous_final($version, $repo);
+    }
+
+    return $previous_version;
 }
 
 // Start command and interpret arguments
@@ -140,10 +145,7 @@ if (!$argv[2]) {
 // Get the repository and tag from arguments
 $meta = $argv[1];
 $tag = $argv[2];
-if ($tag[0] = "v")
-{
-    $tag = substr($tag, 1);
-}
+$tag = strip_version($tag);
 
 // Create sequence of patch version numbers with rcs/betas
 // There must be a smarter way to do this
@@ -156,8 +158,7 @@ $version_sequence_patch = [
 $version_sequence = [];
 
 for ($i = 5; $i >= 0; $i--) {
-    foreach ($version_sequence_patch as $ver)
-    {
+    foreach ($version_sequence_patch as $ver) {
         array_push($version_sequence, $i . $ver);
     }
 }
@@ -199,11 +200,9 @@ $repos_ee = [
 
 if ($meta == "ezplatform") {
     $repos_to_check = $repos_os;
-}
-elseif ($meta == "ezplatformee" || $meta == "ezplatform-ee") {
+} elseif ($meta == "ezplatformee" || $meta == "ezplatform-ee") {
     $repos_to_check = $repos_ee;
-}
-else {
+} else {
     print_r("Unknown meta-repository");
     exit;
 }
@@ -216,16 +215,14 @@ $meta_tags = get_list_of_tags($meta);
 $list_of_tags += [$meta => $meta_tags];
 
 // Get list of tags for all repos, to avoid requesting GitHub every time
-foreach ($repos_to_check as $repo)
-{
+foreach ($repos_to_check as $repo) {
     $repo = str_replace("ezsystems/", "", $repo);
     $list_for_current_repo = get_list_of_tags($repo);
     $list_of_tags += [$repo => $list_for_current_repo];
 }
 
 // Check if the meta tag exists
-if (!check_if_tag_exists($tag, $GLOBALS["meta"]))
-{
+if (!check_if_tag_exists($tag, $GLOBALS["meta"])) {
     print_r("There is no such tag in the meta-repository");
     exit;
 }
@@ -244,17 +241,11 @@ $failed_repositories = [];
 $bundle_list = get_bundles_from_meta($meta, $tag);
 
 // Determine previous meta-repository version for beta/rc:
-if (count($argv)==4) {
+if (count($argv) == 4) {
     // Use previous version provided as arguments, if it exists
     $previous_meta = substr($argv[3], 1);
-}
-elseif ((strpos($tag, 'rc') !== false) || (strpos($tag, 'beta')))
-{
-    $previous_meta = calculate_previous_beta($tag, $meta);
-}
-// Determine previous meta-repository version for final tag:
-else {
-    $previous_meta = calculate_previous_final($tag, $meta);
+} else {
+    $previous_meta = calculate_previous($tag, $meta);
 }
 
 $previous_bundle_list = get_bundles_from_meta($meta, $previous_meta);
@@ -264,7 +255,18 @@ foreach ($bundle_list as $repo => $version) {
 
     $output = [];
     if ($version !== $previous_version) {
-        array_push($output, $repo, $version, $previous_version);
+        strip_version($version);
+
+        // If meta jumped a package version, get actual previous version for a package
+        // for individual release notes
+        $previous_single_version = calculate_previous($version, $repo);
+
+        if ($previous_version == $previous_single_version) {
+            array_push($output, $repo, $version, $previous_version, $previous_version);
+        } else {
+            array_push($output, $repo, $version, $previous_version, $previous_single_version);
+        }
+
         array_push($output_list, $output);
     }
 }
@@ -272,6 +274,7 @@ foreach ($bundle_list as $repo => $version) {
 // Now we start getting the actual release notes
 
 $rn_list = [];
+$rn_list_to_delete = [];
 
 foreach ($output_list as $repo) {
     create_release_notes($repo);
@@ -286,34 +289,33 @@ fwrite($ffinal, "Change log:\n\n");
 fwrite($ffinal, "Changes since " . $previous_meta . "\n\n");
 
 if ($meta == "ezplatformee" || $meta == "ezplatform-ee") {
-    fwrite($ffinal, "Corresponding eZ Platform release: https://github.com/ezsystems/ezplatform/releases/tag/v". $tag . "\n\n");
+    fwrite($ffinal, "Corresponding eZ Platform release: https://github.com/ezsystems/ezplatform/releases/tag/v" . $tag . "\n\n");
 }
 
-foreach ($rn_list as $repo_rn)
-{
+foreach ($rn_list as $repo_rn) {
     $current_repo_rn = file_get_contents($repo_rn);
     fwrite($ffinal, "## ");
     fwrite($ffinal, $current_repo_rn);
 }
 
+foreach ($rn_list_to_delete as $repo_rn) {
+    unlink($repo_rn);
+}
+
 print_r("\n\nRelease notes for meta-repository created in " . $final . ".\n\n");
 
 // Print out JIRA tickets the script couldn't get info for, if there are any
-if (!empty($failed_tickets))
-{
+if (!empty($failed_tickets)) {
     print_r("\nCould not get information for the following tickets: \n");
-    foreach ($failed_tickets as $repository=>$ticket)
-    {
+    foreach ($failed_tickets as $repository => $ticket) {
         print_r($repository . ": " . $ticket . "\n");
     }
 }
 
 // Print out repositories the script couldn't get info for, if there are any
-if (!empty($failed_repositories))
-{
+if (!empty($failed_repositories)) {
     print_r("\nCould not get information for the following repositories: \n");
-    foreach ($failed_repositories as $repository)
-    {
+    foreach ($failed_repositories as $repository) {
         print_r($repository . "\n");
     }
 }

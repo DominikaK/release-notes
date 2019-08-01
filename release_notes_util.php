@@ -9,7 +9,8 @@ $failed_tickets = [];
 $failed_repositories = [];
 
 // Gets a file from GitHub
-function get_from_github($file) {
+function get_from_github($file)
+{
     // From https://stackoverflow.com/a/23391557/7482889
     // This is probably terribly heretical
     // FIXME
@@ -27,17 +28,51 @@ function get_from_github($file) {
     return $curl_output;
 }
 
-function create_release_notes ($repo)
+function create_release_notes($repo)
 {
     $repository = $repo[0];
     $to_version = $repo[1];
     $from_version = $repo[2];
+    $from_version_single = $repo[3];
+
+    // Create compare file for the current repository
+    $compare_file = "https://api.github.com/repos/ezsystems/$repository/compare/v$from_version...v$to_version";
+
+    //This is the file to use when a repo needs different release notes than meta
+    $compare_file_single = "";
+    if (($from_version !== $from_version_single) && ($from_version_single !== "")) {
+        $compare_file_single = "https://api.github.com/repos/ezsystems/$repository/compare/v$from_version_single...v$to_version";
+    }
 
     print_r("\n" . $repository . ":\n");
 
-    // Create compare file for the current repository
-    $compare_file = "https://api.github.com/repos/ezsystems/$repository/compare/$from_version...$to_version";
+    // If versions for meta and single repo are the same
+    if ($compare_file_single =="")
+    {
+        // build regular release notes
+        build_release_notes($compare_file, $from_version, $to_version, $repository, true, false);
+    }
+    // If there are different version for meta and for single repo
+    else
+    {
+        // build regular release notes that will be used for meta
+        build_release_notes($compare_file, $from_version, $to_version, $repository, true, true);
+        // and build release notes that will not be used in meta, but instead in the repo
+        build_release_notes($compare_file_single, $from_version_single, $to_version, $repository, false, false);
+    }
+}
 
+function strip_version($version)
+{
+    if ($version[0] = "v") {
+        $version = substr($version, 1);
+    }
+
+    return $version;
+}
+
+function build_release_notes($compare_file, $from_version, $to_version, $repository, $for_meta = true, $delete = false)
+{
     $json_output = json_decode(get_from_github($compare_file));
 
     if (!isset($json_output->commits)) {
@@ -103,110 +138,119 @@ function create_release_notes ($repo)
             }
         }
 
-    if (empty($entries)) {
-    print_r("No changes.\n");
-    } else {
-        $misc_list = [];
-        $bugs_list = [];
-        $improvements_list = [];
+        if (empty($entries)) {
+            print_r("No changes.\n");
+        } else {
+            $misc_list = [];
+            $bugs_list = [];
+            $improvements_list = [];
 
-        //Go through all tickets and add result to respective lists
-        foreach ($entries as $ticket_out => $key) {
-            // If issue has QA component, place it in Misc
-            if ($key[2] == true) {
-                $misc_list += [$ticket_out => $key];
-            }
-            // If issue is a Bug, place it in Bugs
-            elseif ($key[1] === "Bug") {
-                $bugs_list += [$ticket_out => $key];
-            }
-            // Else place it in improvements
-            else {
-                $improvements_list += [$ticket_out => $key];
-            }
-        }
-
-        //Create temporary output bug and improvement files
-        $misc_file = "misc_$repository$to_version.md";
-        $bugs_file = "bugs_$repository$to_version.md";
-        $improvements_file = "improvements_$repository$to_version.md";
-        $fmisc = fopen($misc_file, "w+");
-        $fbug = fopen($bugs_file, "w+");
-        $fimp = fopen($improvements_file, "w+");
-
-        if (!empty($improvements_list)) {
-            fwrite($fimp, "### Improvements\n\n");
-
-            foreach ($improvements_list as $ticket => $pr) {
-                // Only show PR link when there actually is a PR linked with the task
-                if ($pr[3]) {
-                    $line = "- [$ticket](https://jira.ez.no/browse/$ticket): $pr[0] ([#$pr[3]](https://github.com/ezsystems/$repository/pull/$pr[3]))\n";
-                } else {
-                    $line = "- [$ticket](https://jira.ez.no/browse/$ticket): $pr[0] \n";
+            //Go through all tickets and add result to respective lists
+            foreach ($entries as $ticket_out => $key) {
+                // If issue has QA component, place it in Misc
+                if ($key[2] == true) {
+                    $misc_list += [$ticket_out => $key];
+                } // If issue is a Bug, place it in Bugs
+                elseif ($key[1] === "Bug") {
+                    $bugs_list += [$ticket_out => $key];
+                } // Else place it in improvements
+                else {
+                    $improvements_list += [$ticket_out => $key];
                 }
-                fwrite($fimp, $line);
             }
-        }
 
-        if (!empty($bugs_list)) {
-            fwrite($fbug, "### Bugs\n\n");
-            foreach ($bugs_list as $ticket => $pr) {
-                // Only show PR link when there actually is a PR linked with the task
-                if ($pr[3]) {
-                    $line = "- [$ticket](https://jira.ez.no/browse/$ticket): $pr[0] ([#$pr[3]](https://github.com/ezsystems/$repository/pull/$pr[3]))\n";
-                } else {
-                    $line = "- [$ticket](https://jira.ez.no/browse/$ticket): $pr[0] \n";
+            //Create temporary output bug and improvement files
+            $misc_file = "misc_$repository$to_version.md";
+            $bugs_file = "bugs_$repository$to_version.md";
+            $improvements_file = "improvements_$repository$to_version.md";
+            $fmisc = fopen($misc_file, "w+");
+            $fbug = fopen($bugs_file, "w+");
+            $fimp = fopen($improvements_file, "w+");
+
+            if (!empty($improvements_list)) {
+                fwrite($fimp, "### Improvements\n\n");
+
+                foreach ($improvements_list as $ticket => $pr) {
+                    // Only show PR link when there actually is a PR linked with the task
+                    if ($pr[3]) {
+                        $line = "- [$ticket](https://jira.ez.no/browse/$ticket): $pr[0] ([#$pr[3]](https://github.com/ezsystems/$repository/pull/$pr[3]))\n";
+                    } else {
+                        $line = "- [$ticket](https://jira.ez.no/browse/$ticket): $pr[0] \n";
+                    }
+                    fwrite($fimp, $line);
                 }
-                fwrite($fbug, $line);
             }
-        }
 
-        if (!empty($misc_list)) {
-            fwrite($fmisc, "### Misc\n\n");
-            foreach ($misc_list as $ticket => $pr) {
-                // Only show PR link when there actually is a PR linked with the task
-                if ($pr[3]) {
-                    $line = "- [$ticket](https://jira.ez.no/browse/$ticket): $pr[0] ([#$pr[3]](https://github.com/ezsystems/$repository/pull/$pr[3]))\n";
-                } else {
-                    $line = "- [$ticket](https://jira.ez.no/browse/$ticket): $pr[0] \n";
+            if (!empty($bugs_list)) {
+                fwrite($fbug, "### Bugs\n\n");
+                foreach ($bugs_list as $ticket => $pr) {
+                    // Only show PR link when there actually is a PR linked with the task
+                    if ($pr[3]) {
+                        $line = "- [$ticket](https://jira.ez.no/browse/$ticket): $pr[0] ([#$pr[3]](https://github.com/ezsystems/$repository/pull/$pr[3]))\n";
+                    } else {
+                        $line = "- [$ticket](https://jira.ez.no/browse/$ticket): $pr[0] \n";
+                    }
+                    fwrite($fbug, $line);
                 }
-                fwrite($fmisc, $line);
             }
-            fwrite($fmisc, "\n\n");
-        }
 
-        fclose($fimp);
-        fclose($fbug);
-        fclose($fmisc);
+            if (!empty($misc_list)) {
+                fwrite($fmisc, "### Misc\n\n");
+                foreach ($misc_list as $ticket => $pr) {
+                    // Only show PR link when there actually is a PR linked with the task
+                    if ($pr[3]) {
+                        $line = "- [$ticket](https://jira.ez.no/browse/$ticket): $pr[0] ([#$pr[3]](https://github.com/ezsystems/$repository/pull/$pr[3]))\n";
+                    } else {
+                        $line = "- [$ticket](https://jira.ez.no/browse/$ticket): $pr[0] \n";
+                    }
+                    fwrite($fmisc, $line);
+                }
+                fwrite($fmisc, "\n\n");
+            }
 
-        //Create final output file
-        $file = "release_notes_$repository" . "_$to_version.md";
-        @array_push($GLOBALS["rn_list"], $file);
-        $f = fopen($file, "a+");
-        fwrite($f, "$repository changes between $from_version and $to_version\n\n");
+            fclose($fimp);
+            fclose($fbug);
+            fclose($fmisc);
 
-        //Add improvements to the final file
-        $imp_contents = file_get_contents($improvements_file);
-        fwrite($f, $imp_contents);
-        fwrite($f, "\n");
+            //Create final output file
+            $file = "release_notes_$repository" . "_$from_version" . "_to_" . "_$to_version.md";
 
-        //Add bugs to the final file
-        $bug_contents = file_get_contents($bugs_file);
-        fwrite($f, $bug_contents);
-        fwrite($f, "\n");
+            // push the file to global list if it should be used for meta
+            if ($for_meta == true) {
+                @array_push($GLOBALS["rn_list"], $file);
+            }
+            // Deletes the output file for the repo if it's only used to build meta
+            if ($delete == true)
+            {
+                @array_push($GLOBALS["rn_list_to_delete"], $file);
+            }
 
-        //Add misc to the final file
-        $misc_contents = file_get_contents($misc_file);
-        fwrite($f, $misc_contents);
 
-        //Delete temporary files
-        unlink($bugs_file);
-        unlink($improvements_file);
-        unlink($misc_file);
+            $f = fopen($file, "a+");
+            fwrite($f, "$repository changes between $from_version and $to_version\n\n");
 
-        fclose($f);
+            //Add improvements to the final file
+            $imp_contents = file_get_contents($improvements_file);
+            fwrite($f, $imp_contents);
+            fwrite($f, "\n");
 
-        print_r("Done.\n");
+            //Add bugs to the final file
+            $bug_contents = file_get_contents($bugs_file);
+            fwrite($f, $bug_contents);
+            fwrite($f, "\n");
+
+            //Add misc to the final file
+            $misc_contents = file_get_contents($misc_file);
+            fwrite($f, $misc_contents);
+
+            //Delete temporary files
+            unlink($bugs_file);
+            unlink($improvements_file);
+            unlink($misc_file);
+
+            fclose($f);
+
+            print_r("Done.\n");
         }
     }
 }

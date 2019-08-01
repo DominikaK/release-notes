@@ -21,8 +21,9 @@ if (file_exists('token.txt')) {
 $repo = [];
 
 $repo[0] = $argv[1];
-$repo[1] = $argv[2];
-$repo[2] = $argv[3];
+$repo[1] = strip_version($argv[2]);
+$repo[2] = strip_version($argv[3]);
+$repo[3] = "";
 
 create_release_notes($repo);
 
