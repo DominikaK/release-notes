@@ -280,6 +280,9 @@ foreach ($output_list as $repo) {
     create_release_notes($repo);
 }
 
+$meta_repo = [$meta, $tag, $previous_meta, $previous_meta];
+create_release_notes($meta_repo);
+
 // Create meta release notes
 $final = "release_notes_" . $meta . "_" . $tag . ".md";
 $ffinal = fopen($final, "w+");
