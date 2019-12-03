@@ -227,7 +227,9 @@ function build_release_notes($compare_file, $from_version, $to_version, $reposit
 
 
             $f = fopen($file, "a+");
-            fwrite($f, "$repository changes between $from_version and $to_version\n\n");
+            fwrite($f, "[$repository](https://github.com/ezsystems/$repository) changes between " .
+            "[v$from_version](https://github.com/ezsystems/$repository/releases/tag/v$from_version) and " .
+            "[v$to_version](https://github.com/ezsystems/$repository/releases/tag/v$to_version)\n\n");
 
             //Add improvements to the final file
             $imp_contents = file_get_contents($improvements_file);

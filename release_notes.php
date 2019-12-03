@@ -287,13 +287,15 @@ create_release_notes($meta_repo);
 $final = "release_notes_" . $meta . "_" . $tag . ".md";
 $ffinal = fopen($final, "w+");
 
-fwrite($ffinal, "Change log:\n\n");
-
-fwrite($ffinal, "Changes since " . $previous_meta . "\n\n");
+fwrite($ffinal, "# $meta v$tag change log\n\n");
 
 if ($meta == "ezplatformee" || $meta == "ezplatform-ee") {
     fwrite($ffinal, "Corresponding eZ Platform release: https://github.com/ezsystems/ezplatform/releases/tag/v" . $tag . "\n\n");
+} else {
+    fwrite($ffinal, "Corresponding eZ Platform Enterprise Edition release: https://github.com/ezsystems/ezplatform-ee/releases/tag/v" . $tag . "\n\n");
 }
+
+fwrite($ffinal, "Changes since " . $previous_meta . "\n\n");
 
 foreach ($rn_list as $repo_rn) {
     $current_repo_rn = file_get_contents($repo_rn);
