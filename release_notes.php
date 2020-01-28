@@ -152,7 +152,7 @@ $tag = strip_version($tag);
 $version_sequence_patch = [
     "",
     "-rc3", "-rc2", "-rc1",
-    "-beta3", "-beta2", "-beta1"
+    "-beta7", "-beta6", "-beta5", "-beta4", "-beta3", "-beta2", "-beta1"
 ];
 
 $version_sequence = [];
@@ -195,7 +195,8 @@ $repos_ee = [
     "ezsystems/ezplatform-page-fieldtype",
     "ezsystems/flex-workflow",
     "ezsystems/ezplatform-workflow",
-    "ezsystems/ezplatform-calendar"
+    "ezsystems/ezplatform-calendar",
+    "ezsystems/ezplatform-content-comparison"
 ];
 
 if ($meta == "ezplatform") {
