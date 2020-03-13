@@ -183,7 +183,8 @@ $repos_os = [
     "ezsystems/ezplatform-user",
     "ezsystems/doctrine-dbal-schema",
     "ezsystems/ezplatform-matrix-fieldtype",
-    "ezsystems/ezplatform-content-forms"
+    "ezsystems/ezplatform-content-forms",
+    "ezsystems/ezplatform-query-fieldtype"
 ];
 
 $repos_ee = [
@@ -196,7 +197,9 @@ $repos_ee = [
     "ezsystems/flex-workflow",
     "ezsystems/ezplatform-workflow",
     "ezsystems/ezplatform-calendar",
-    "ezsystems/ezplatform-content-comparison"
+    "ezsystems/ezplatform-version-comparison",
+    "ezsystems/ezplatform-site-factory",
+
 ];
 
 if ($meta == "ezplatform") {
