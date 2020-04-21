@@ -90,6 +90,11 @@ function build_release_notes($compare_file, $from_version, $to_version, $reposit
             //Read commit message
             $commit_name = $commit->commit->message;
 
+            // Exclude commits with [Behat] in their name
+            if (preg_match('/\Q[Behat]\E/i', $commit_name)) {
+                continue;
+            }
+
             //Check if there is a jira project and ticket number
             $ticket = preg_match('/(((EZP)|(EZEE)|(DEMO))-[[:digit:]]+)/', $commit_name, $matches_ticket);
             //Check if there is a PR number
