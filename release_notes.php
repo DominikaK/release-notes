@@ -167,7 +167,7 @@ for ($i = 5; $i >= 0; $i--) {
 $repos_to_check = [];
 
 $repos_os = [
-    "ezsystems/ezpublish-kernel",
+    "ezsystems/ezplatform-kernel",
     "ezsystems/ezplatform-admin-ui",
     "ezsystems/repository-forms",
     "ezsystems/ezplatform-solr-search-engine",
