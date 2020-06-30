@@ -28,6 +28,34 @@ function get_from_github($file)
     return $curl_output;
 }
 
+function get_from_jira($file)
+{
+    // https://community.developer.atlassian.com/t/login-into-jira-with-jira-rest-api-cookie-based-php/11222
+    $ch = curl_init('https://jira.ez.no/rest/auth/1/session');
+    $jsonData = array('DominikaK', 'bla');
+//    $jsonData = array( 'username' => $_POST['username'], 'password' => $_POST['password'] );
+    $jsonDataEncoded = json_encode($jsonData);
+    curl_setopt($ch, CURLOPT_POSTFIELDS, $jsonDataEncoded);
+
+    curl_setopt($ch, CURLOPT_POST, true);
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
+    curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+    curl_setopt($ch, CURLOPT_HTTPHEADER, array('Content-Type: application/json'));
+
+    $result = curl_exec($ch);
+    curl_close($ch);
+
+    $sess_arr = json_decode($result, true);
+
+    echo '<pre>';
+    var_dump($ch);
+    var_dump($sess_arr);
+    echo'</pre>';
+
+    return($result);
+}
+
 function create_release_notes($repo)
 {
     $repository = $repo[0];
@@ -96,7 +124,7 @@ function build_release_notes($compare_file, $from_version, $to_version, $reposit
             }
 
             //Check if there is a jira project and ticket number
-            $ticket = preg_match('/(((EZP)|(EZEE)|(DEMO))-[[:digit:]]+)/', $commit_name, $matches_ticket);
+            $ticket = preg_match('/(((EZP)|(EZEE)|(DEMO)|(EC))-[[:digit:]]+)/', $commit_name, $matches_ticket);
             //Check if there is a PR number
             $pr = preg_match('/((?<=[#])[[:digit:]]+)/', $commit_name, $matches_pr);
 
@@ -105,39 +133,57 @@ function build_release_notes($compare_file, $from_version, $to_version, $reposit
                 $pr_output = json_decode(get_from_github("https://api.github.com/repos/ezsystems/$repository/pulls/$matches_pr[0]"));
                 $pr_body = $pr_output->body;
                 //Override ticket with the ticket info taken from PR description
-                $ticket = preg_match('/(((EZP)|(EZEE)|(DEMO))-[[:digit:]]+)/', $pr_body, $matches_ticket);
+                $ticket = preg_match('/(((EZP)|(EZEE)|(DEMO)|(EC))-[[:digit:]]+)/', $pr_body, $matches_ticket);
             }
 
             //If there is a ticket in commit message or we got one from the PR
             if ($ticket === 1) {
-                //Gets jira info for the current ticket
-                $jira_file = "https://jira.ez.no/rest/api/2/issue/$matches_ticket[0]";
+                // Ugly hack in case of commerce
+                $is_ec = preg_match('/(EC)/', $commit_name);
+                if ($is_ec == 1) {
+                    $summary = strtok($commit_name, "\n");
+                    $issue_type = 'improvement';
+                    $is_misc = true;
 
-                //Converts api output to json
-                $jira_json = @file_get_contents($jira_file);
-                $jira_output = json_decode($jira_json);
-
-                if (!isset($jira_output->id)) {
-                    $GLOBALS["failed_tickets"] += [$repository => $matches_ticket[0]];
-                } else {
-                    // Gets Summary field for the current ticket
-                    $summary = $jira_output->fields->summary;
-                    $issue_type = $jira_output->fields->issuetype->name;
-                    $is_misc = false;
-
-                    // Checks if issue has QA component
-                    $issue_components = $jira_output->fields->components;
-                    foreach ($issue_components as $component) {
-                        if ($component->name == "QA") {
-                            $is_misc = true;
-                        }
-                    }
-
-                    //Add ticket number, summary and pr number to array
                     if ($pr === 1) {
                         $entries[$matches_ticket[0]] = array($summary, $issue_type, $is_misc, $matches_pr[0]);
                     } else {
                         $entries[$matches_ticket[0]] = array($summary, $issue_type, $is_misc, '');
+                    }
+                } else {
+
+                    //Gets jira info for the current ticket
+//                $jira_file = get_from_jira("https://jira.ez.no/rest/api/2/issue/$matches_ticket[0]");
+                    $jira_file = "https://jira.ez.no/rest/api/2/issue/$matches_ticket[0]";
+
+                    //Converts api output to json
+                    $jira_json = file_get_contents($jira_file);
+                    $jira_output = json_decode($jira_json);
+
+                    echo json_encode($jira_json);
+
+                    if (!isset($jira_output->id)) {
+                        $GLOBALS["failed_tickets"] += [$repository => $matches_ticket[0]];
+                    } else {
+                        // Gets Summary field for the current ticket
+                        $summary = $jira_output->fields->summary;
+                        $issue_type = $jira_output->fields->issuetype->name;
+                        $is_misc = false;
+
+                        // Checks if issue has QA component
+                        $issue_components = $jira_output->fields->components;
+                        foreach ($issue_components as $component) {
+                            if ($component->name == "QA") {
+                                $is_misc = true;
+                            }
+                        }
+
+                        //Add ticket number, summary and pr number to array
+                        if ($pr === 1) {
+                            $entries[$matches_ticket[0]] = array($summary, $issue_type, $is_misc, $matches_pr[0]);
+                        } else {
+                            $entries[$matches_ticket[0]] = array($summary, $issue_type, $is_misc, '');
+                        }
                     }
                 }
             }
