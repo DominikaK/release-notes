@@ -186,6 +186,7 @@ $repos_os = [
     "ezsystems/ezplatform-content-forms",
     "ezsystems/ezplatform-query-fieldtype",
     "ezsystems/ezplatform-search",
+    "ezsystems/ezplatform-cron",
 ];
 
 $repos_ee = [
@@ -201,6 +202,9 @@ $repos_ee = [
     "ezsystems/ezplatform-version-comparison",
     "ezsystems/ezplatform-site-factory",
     "ezsystems/ezplatform-elastic-search-engine",
+    "ezsystems/ezplatform-segmentation",
+    "ezsystems/ezplatform-connector-dam",
+    "ezsystems/ezplatform-permissions",
 ];
 
 if ($meta == "ezplatform") {
