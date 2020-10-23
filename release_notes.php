@@ -211,6 +211,7 @@ $repos_commerce = [
     "ezsystems/ezcommerce-erp-admin",
     "ezsystems/ezcommerce-base-design",
     "ezsystems/ezcommerce-shop",
+    "ezsystems/ezcommerce-shop-ui",
     "ezsystems/ezcommerce-order-history",
     "ezsystems/ezcommerce-price-engine",
     "ezsystems/ezcommerce-admin-ui",
