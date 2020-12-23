@@ -166,45 +166,49 @@ for ($i = 5; $i >= 0; $i--) {
 // This is the list of all repositories we will check
 $repos_to_check = [];
 
-$repos_os = [
-    "ezsystems/ezplatform-kernel",
-    "ezsystems/ezplatform-admin-ui",
-    "ezsystems/repository-forms",
-    "ezsystems/ezplatform-solr-search-engine",
-    "ezsystems/ezplatform-http-cache",
-    "ezsystems/ezplatform-admin-ui-modules",
-    "ezsystems/ezplatform-core",
-    "ezsystems/ezplatform-rest",
-    "ezsystems/ezplatform-design-engine",
-    "ezsystems/ezplatform-standard-design",
-    "ezsystems/ez-support-tools",
-    "ezsystems/ezplatform-richtext",
-    "ezsystems/ezplatform-graphql",
-    "ezsystems/ezplatform-user",
+$repos_content = [
+    "ezsystems/date-based-publisher",
     "ezsystems/doctrine-dbal-schema",
-    "ezsystems/ezplatform-matrix-fieldtype",
+    "ezsystems/ez-support-tools",
+    "ezsystems/ezplatform-admin-ui-modules",
+    "ezsystems/ezplatform-admin-ui",
+    "ezsystems/ezplatform-calendar",
+    "ezsystems/ezplatform-connector-dam",
     "ezsystems/ezplatform-content-forms",
-    "ezsystems/ezplatform-query-fieldtype",
-    "ezsystems/ezplatform-search",
+    "ezsystems/ezplatform-core",
     "ezsystems/ezplatform-cron",
+    "ezsystems/ezplatform-design-engine",
+    "ezsystems/ezplatform-elastic-search-engine",
+    "ezsystems/ezplatform-graphql",
+    "ezsystems/ezplatform-http-cache",
+    "ezsystems/ezplatform-icons",
+    "ezsystems/ezplatform-kernel",
+    "ezsystems/ezplatform-matrix-fieldtype",
+    "ezsystems/ezplatform-personalization",
+    "ezsystems/ezplatform-query-fieldtype",
+    "ezsystems/ezplatform-rest",
+    "ezsystems/ezplatform-richtext",
+    "ezsystems/ezplatform-search",
+    "ezsystems/ezplatform-solr-search-engine",
+    "ezsystems/ezplatform-standard-design",
+    "ezsystems/ezplatform-user",
+    "ezsystems/ezplatform-version-comparison",
+    "ezsystems/ezplatform-workflow",
+    "ezsystems/ezrecommendation-client",
+    "ezsystems/repository-forms",
 ];
 
-$repos_ee = [
-    "ezsystems/date-based-publisher",
+$repos_exp = [
     "ezsystems/ezplatform-ee-installer",
     "ezsystems/ezplatform-form-builder",
     "ezsystems/ezplatform-http-cache-fastly",
     "ezsystems/ezplatform-page-builder",
     "ezsystems/ezplatform-page-fieldtype",
-    "ezsystems/flex-workflow",
-    "ezsystems/ezplatform-workflow",
-    "ezsystems/ezplatform-calendar",
-    "ezsystems/ezplatform-version-comparison",
-    "ezsystems/ezplatform-site-factory",
-    "ezsystems/ezplatform-elastic-search-engine",
-    "ezsystems/ezplatform-segmentation",
-    "ezsystems/ezplatform-connector-dam",
     "ezsystems/ezplatform-permissions",
+    "ezsystems/ezplatform-segmentation",
+    "ezsystems/ezplatform-site-factory",
+    "ibexa/image-editor",
+    "ibexa/migrations"
 ];
 
 $repos_commerce = [
@@ -220,7 +224,7 @@ $repos_commerce = [
 ];
 
 if ($meta == "ezplatform") {
-    $repos_to_check = $repos_os;
+    $repos_to_check = $repos_content;
 } elseif ($meta == "ezplatformee" || $meta == "ezplatform-ee") {
     $repos_to_check = $repos_ee;
 } elseif ($meta == "ezcommerce" || $meta == "commerce") {
