@@ -207,11 +207,26 @@ $repos_ee = [
     "ezsystems/ezplatform-permissions",
 ];
 
+$repos_commerce = [
+    "ezsystems/ezcommerce-erp-admin",
+    "ezsystems/ezcommerce-base-design",
+    "ezsystems/ezcommerce-shop",
+    "ezsystems/ezcommerce-shop-ui",
+    "ezsystems/ezcommerce-order-history",
+    "ezsystems/ezcommerce-price-engine",
+    "ezsystems/ezcommerce-admin-ui",
+    "ezsystems/ezcommerce-page-builder",
+    "ezsystems/ezcommerce-fieldtypes",
+];
+
 if ($meta == "ezplatform") {
     $repos_to_check = $repos_os;
 } elseif ($meta == "ezplatformee" || $meta == "ezplatform-ee") {
     $repos_to_check = $repos_ee;
-} else {
+} elseif ($meta == "ezcommerce" || $meta == "commerce") {
+    $repos_to_check = $repos_commerce;
+}
+else {
     print_r("Unknown meta-repository");
     exit;
 }
@@ -298,7 +313,7 @@ $ffinal = fopen($final, "w+");
 
 fwrite($ffinal, "# $meta v$tag change log\n\n");
 
-if ($meta == "ezplatformee" || $meta == "ezplatform-ee") {
+if ($meta == "ezplatformee" || $meta == "ezplatform-ee" || $meta == "ezcommerce") {
     fwrite($ffinal, "Corresponding eZ Platform release: https://github.com/ezsystems/ezplatform/releases/tag/v" . $tag . "\n\n");
 } else {
     fwrite($ffinal, "Corresponding eZ Platform Enterprise Edition release: https://github.com/ezsystems/ezplatform-ee/releases/tag/v" . $tag . "\n\n");
