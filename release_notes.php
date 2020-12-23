@@ -6,7 +6,6 @@ include 'release_notes_util.php';
 function check_if_tag_exists($tag, $repo)
 {
     $list_for_current_repo = $GLOBALS["list_of_tags"][$repo];
-
     if (in_array($tag, $list_for_current_repo)) {
         return true;
     } else {
@@ -76,16 +75,15 @@ function calculate_previous_final($version, $repo)
 // Gets all tags from the provided repo
 function get_list_of_tags($repo)
 {
-    $tags = get_from_github("https://api.github.com/repos/ezsystems/$repo/git/refs/tags");
-
+    $tags = get_from_github("https://api.github.com/repos/$repo/git/refs/tags");
     $raw_list_of_tags = json_decode($tags, JSON_OBJECT_AS_ARRAY);
+
     $list_of_tags = [];
     foreach ($raw_list_of_tags as $tag) {
         $tag_ref = $tag["ref"];
         $tag = str_replace("refs/tags/v", "", $tag_ref);
         array_push($list_of_tags, $tag);
     }
-
     return $list_of_tags;
 }
 
@@ -93,7 +91,8 @@ function get_list_of_tags($repo)
 function get_bundles_from_meta($meta, $tag)
 {
     // Get meta tag composer.json from GitHub
-    $meta_composer = get_from_github("https://api.github.com/repos/ezsystems/$meta/contents/composer.lock?ref=v$tag");
+    $meta_composer = get_from_github("https://api.github.com/repos/$meta/contents/composer.lock?ref=v$tag");
+
     // Decode the json and get its content
     $decoded = base64_decode(json_decode($meta_composer)->content);
 
@@ -103,9 +102,10 @@ function get_bundles_from_meta($meta, $tag)
 
     foreach ($raw_bundle_list as $repo) {
         if (in_array($repo['name'], $GLOBALS["repos_to_check"])) {
-            $repo_name = str_replace("ezsystems/", "", $repo['name']);
+//            $repo_name = str_replace("ezsystems/", "", $repo['name']);
+//            $repo_name = str_replace("ibexa/", "", $repo['name']);
             $version = strip_version($repo['version']);
-            $filtered_bundle_list += [$repo_name => $version];
+            $filtered_bundle_list += [$repo['name'] => $version];
         }
     }
     return $filtered_bundle_list;
@@ -224,6 +224,7 @@ $repos_commerce = [
 ];
 
 if ($meta == "ezplatform") {
+    $meta = "ezsystems/ezplatform";
     $repos_to_check = $repos_content;
 } elseif ($meta == "ezplatformee" || $meta == "ezplatform-ee") {
     $repos_to_check = $repos_ee;
@@ -244,7 +245,7 @@ $list_of_tags += [$meta => $meta_tags];
 
 // Get list of tags for all repos, to avoid requesting GitHub every time
 foreach ($repos_to_check as $repo) {
-    $repo = str_replace("ezsystems/", "", $repo);
+//    $repo = str_replace("ezsystems/", "", $repo);
     $list_for_current_repo = get_list_of_tags($repo);
     $list_of_tags += [$repo => $list_for_current_repo];
 }
@@ -312,7 +313,9 @@ $meta_repo = [$meta, $tag, $previous_meta, $previous_meta];
 create_release_notes($meta_repo);
 
 // Create meta release notes
-$final = "release_notes_" . $meta . "_" . $tag . ".md";
+$metarepo_name = str_replace("ezsystems/", "", $meta);
+$metarepo_name = str_replace("ibexa/", "", $metarepo_name);
+$final = "release_notes_" . $metarepo_name . "_" . $tag . ".md";
 $ffinal = fopen($final, "w+");
 
 fwrite($ffinal, "# $meta v$tag change log\n\n");

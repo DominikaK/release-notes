@@ -64,12 +64,12 @@ function create_release_notes($repo)
     $from_version_single = $repo[3];
 
     // Create compare file for the current repository
-    $compare_file = "https://api.github.com/repos/ezsystems/$repository/compare/v$from_version...v$to_version";
+    $compare_file = "https://api.github.com/repos/$repository/compare/v$from_version...v$to_version";
 
     //This is the file to use when a repo needs different release notes than meta
     $compare_file_single = "";
     if (($from_version !== $from_version_single) && ($from_version_single !== "")) {
-        $compare_file_single = "https://api.github.com/repos/ezsystems/$repository/compare/v$from_version_single...v$to_version";
+        $compare_file_single = "https://api.github.com/repos/$repository/compare/v$from_version_single...v$to_version";
     }
 
     print_r("\n" . $repository . ":\n");
@@ -130,7 +130,7 @@ function build_release_notes($compare_file, $from_version, $to_version, $reposit
 
             // If there is no ticket in the commit message and there is a PR, look through PR description
             if ($ticket === 0 && $pr === 1) {
-                $pr_output = json_decode(get_from_github("https://api.github.com/repos/ezsystems/$repository/pulls/$matches_pr[0]"));
+                $pr_output = json_decode(get_from_github("https://api.github.com/repos/$repository/pulls/$matches_pr[0]"));
                 $pr_body = $pr_output->body;
                 //Override ticket with the ticket info taken from PR description
                 $ticket = preg_match('/(((EZP)|(EZEE)|(DEMO)|(EC))-[[:digit:]]+)/', $pr_body, $matches_ticket);
@@ -211,9 +211,12 @@ function build_release_notes($compare_file, $from_version, $to_version, $reposit
             }
 
             //Create temporary output bug and improvement files
-            $misc_file = "misc_$repository$to_version.md";
-            $bugs_file = "bugs_$repository$to_version.md";
-            $improvements_file = "improvements_$repository$to_version.md";
+            $repo_name = str_replace("ezsystems/", "", $repository);
+            $repo_name = str_replace("ibexa/", "", $repo_name);
+
+            $misc_file = "misc_$repo_name$to_version.md";
+            $bugs_file = "bugs_$repo_name$to_version.md";
+            $improvements_file = "improvements_$repo_name$to_version.md";
             $fmisc = fopen($misc_file, "w+");
             $fbug = fopen($bugs_file, "w+");
             $fimp = fopen($improvements_file, "w+");
@@ -224,7 +227,7 @@ function build_release_notes($compare_file, $from_version, $to_version, $reposit
                 foreach ($improvements_list as $ticket => $pr) {
                     // Only show PR link when there actually is a PR linked with the task
                     if ($pr[3]) {
-                        $line = "- [$ticket](https://jira.ez.no/browse/$ticket): $pr[0] ([#$pr[3]](https://github.com/ezsystems/$repository/pull/$pr[3]))\n";
+                        $line = "- [$ticket](https://jira.ez.no/browse/$ticket): $pr[0] ([#$pr[3]](https://github.com/$repository/pull/$pr[3]))\n";
                     } else {
                         $line = "- [$ticket](https://jira.ez.no/browse/$ticket): $pr[0] \n";
                     }
@@ -237,7 +240,7 @@ function build_release_notes($compare_file, $from_version, $to_version, $reposit
                 foreach ($bugs_list as $ticket => $pr) {
                     // Only show PR link when there actually is a PR linked with the task
                     if ($pr[3]) {
-                        $line = "- [$ticket](https://jira.ez.no/browse/$ticket): $pr[0] ([#$pr[3]](https://github.com/ezsystems/$repository/pull/$pr[3]))\n";
+                        $line = "- [$ticket](https://jira.ez.no/browse/$ticket): $pr[0] ([#$pr[3]](https://github.com/$repository/pull/$pr[3]))\n";
                     } else {
                         $line = "- [$ticket](https://jira.ez.no/browse/$ticket): $pr[0] \n";
                     }
@@ -250,7 +253,7 @@ function build_release_notes($compare_file, $from_version, $to_version, $reposit
                 foreach ($misc_list as $ticket => $pr) {
                     // Only show PR link when there actually is a PR linked with the task
                     if ($pr[3]) {
-                        $line = "- [$ticket](https://jira.ez.no/browse/$ticket): $pr[0] ([#$pr[3]](https://github.com/ezsystems/$repository/pull/$pr[3]))\n";
+                        $line = "- [$ticket](https://jira.ez.no/browse/$ticket): $pr[0] ([#$pr[3]](https://github.com/$repository/pull/$pr[3]))\n";
                     } else {
                         $line = "- [$ticket](https://jira.ez.no/browse/$ticket): $pr[0] \n";
                     }
@@ -264,7 +267,7 @@ function build_release_notes($compare_file, $from_version, $to_version, $reposit
             fclose($fmisc);
 
             //Create final output file
-            $file = "release_notes_$repository" . "_$from_version" . "_to_" . "_$to_version.md";
+            $file = "release_notes_$repo_name" . "_$from_version" . "_to_" . "_$to_version.md";
 
             // push the file to global list if it should be used for meta
             if ($for_meta == true) {
@@ -278,9 +281,9 @@ function build_release_notes($compare_file, $from_version, $to_version, $reposit
 
 
             $f = fopen($file, "a+");
-            fwrite($f, "[$repository](https://github.com/ezsystems/$repository) changes between " .
-            "[v$from_version](https://github.com/ezsystems/$repository/releases/tag/v$from_version) and " .
-            "[v$to_version](https://github.com/ezsystems/$repository/releases/tag/v$to_version)\n\n");
+            fwrite($f, "[$repository](https://github.com/$repository) changes between " .
+            "[v$from_version](https://github.com/$repository/releases/tag/v$from_version) and " .
+            "[v$to_version](https://github.com/$repository/releases/tag/v$to_version)\n\n");
 
             //Add improvements to the final file
             $imp_contents = file_get_contents($improvements_file);
