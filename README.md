@@ -35,8 +35,8 @@ as well as a separate file for the meta-repository.
 
 To create release notes for a single repository (not a meta), enter the directory containing the script and run:
 
-`php release_notes_single.php <repository> <current-version> <version-to-compare-with>`
+`php release_notes_single.php <vendor>/<repository> <new tag> <previous tag>`
 
 For example:
 
-`php release_notes_single.php ezpublish-kernel v7.3.0 v7.2.0`
+`php release_notes_single.php ezsystems/ezpublish-kernel v7.3.0 v7.2.0`
