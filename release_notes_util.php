@@ -124,7 +124,7 @@ function build_release_notes($compare_file, $from_version, $to_version, $reposit
             }
 
             //Check if there is a jira project and ticket number
-            $ticket = preg_match('/(((EZP)|(EZEE)|(DEMO)|(EC))-[[:digit:]]+)/', $commit_name, $matches_ticket);
+            $ticket = preg_match('/(((EZP)|(EZEE)|(DEMO)|(EC)|(RSYS))-[[:digit:]]+)/', $commit_name, $matches_ticket);
             //Check if there is a PR number
             $pr = preg_match('/((?<=[#])[[:digit:]]+)/', $commit_name, $matches_pr);
 
@@ -133,13 +133,13 @@ function build_release_notes($compare_file, $from_version, $to_version, $reposit
                 $pr_output = json_decode(get_from_github("https://api.github.com/repos/$repository/pulls/$matches_pr[0]"));
                 $pr_body = $pr_output->body;
                 //Override ticket with the ticket info taken from PR description
-                $ticket = preg_match('/(((EZP)|(EZEE)|(DEMO)|(EC))-[[:digit:]]+)/', $pr_body, $matches_ticket);
+                $ticket = preg_match('/(((EZP)|(EZEE)|(DEMO)|(EC)|(RSYS))-[[:digit:]]+)/', $pr_body, $matches_ticket);
             }
 
             //If there is a ticket in commit message or we got one from the PR
             if ($ticket === 1) {
-                // Ugly hack in case of commerce
-                $is_ec = preg_match('/(EC)/', $commit_name);
+                // Ugly hack in case of commerce and perso
+                $is_ec = preg_match('/(EC)|(RSYS)/', $commit_name);
                 if ($is_ec == 1) {
                     $summary = strtok($commit_name, "\n");
                     $issue_type = 'improvement';
