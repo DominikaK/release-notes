@@ -166,10 +166,84 @@ for ($i = 5; $i >= 0; $i--) {
 // This is the list of all repositories we will check
 $repos_to_check = [];
 
+$repos_os = [
+    "ezsystems/ezplatform-kernel",
+    "ezsystems/ezplatform-admin-ui",
+    "ezsystems/repository-forms",
+    "ezsystems/ezplatform-solr-search-engine",
+    "ezsystems/ezplatform-http-cache",
+    "ezsystems/ezplatform-admin-ui-modules",
+    "ezsystems/ezplatform-core",
+    "ezsystems/ezplatform-rest",
+    "ezsystems/ezplatform-design-engine",
+    "ezsystems/ezplatform-standard-design",
+    "ezsystems/ez-support-tools",
+    "ezsystems/ezplatform-richtext",
+    "ezsystems/ezplatform-graphql",
+    "ezsystems/ezplatform-user",
+    "ezsystems/doctrine-dbal-schema",
+    "ezsystems/ezplatform-matrix-fieldtype",
+    "ezsystems/ezplatform-content-forms",
+    "ezsystems/ezplatform-query-fieldtype",
+    "ezsystems/ezplatform-search",
+    "ezsystems/ezplatform-cron",
+];
+
+$repos_ee = [
+    "ezsystems/date-based-publisher",
+    "ezsystems/ezplatform-ee-installer",
+    "ezsystems/ezplatform-form-builder",
+    "ezsystems/ezplatform-http-cache-fastly",
+    "ezsystems/ezplatform-page-builder",
+    "ezsystems/ezplatform-page-fieldtype",
+    "ezsystems/flex-workflow",
+    "ezsystems/ezplatform-workflow",
+    "ezsystems/ezplatform-calendar",
+    "ezsystems/ezplatform-version-comparison",
+    "ezsystems/ezplatform-site-factory",
+    "ezsystems/ezplatform-elastic-search-engine",
+    "ezsystems/ezplatform-segmentation",
+    "ezsystems/ezplatform-connector-dam",
+    "ezsystems/ezplatform-permissions",
+];
+
+$repos_ez_commerce = [
+    "ezsystems/ezcommerce-erp-admin",
+    "ezsystems/ezcommerce-base-design",
+    "ezsystems/ezcommerce-shop",
+    "ezsystems/ezcommerce-order-history",
+    "ezsystems/ezcommerce-price-engine",
+    "ezsystems/ezcommerce-admin-ui",
+    "ezsystems/ezcommerce-page-builder",
+    "ezsystems/ezcommerce-fieldtypes",
+];
+
+$repos_oss = [
+    "ezsystems/doctrine-dbal-schema",
+    "ezsystems/ez-support-tools",
+    "ezsystems/ezplatform-admin-ui",
+    "ezsystems/ezplatform-content-forms",
+    "ezsystems/ezplatform-core",
+    "ezsystems/ezplatform-cron",
+    "ezsystems/ezplatform-design-engine",
+    "ezsystems/ezplatform-graphql",
+    "ezsystems/ezplatform-http-cache",
+    "ezsystems/ezplatform-kernel",
+    "ezsystems/ezplatform-matrix-fieldtype",
+    "ezsystems/ezplatform-query-fieldtype",
+    "ezsystems/ezplatform-rest",
+    "ezsystems/ezplatform-richtext",
+    "ezsystems/ezplatform-search",
+    "ezsystems/ezplatform-solr-search-engine",
+    "ezsystems/ezplatform-standard-design",
+    "ezsystems/ezplatform-user",
+];
+
 $repos_content = [
     "ezsystems/date-based-publisher",
     "ezsystems/doctrine-dbal-schema",
     "ezsystems/ez-support-tools",
+    "ezsystems/ezcommerce-shop",
     "ezsystems/ezplatform-admin-ui-modules",
     "ezsystems/ezplatform-admin-ui",
     "ezsystems/ezplatform-calendar",
@@ -195,7 +269,14 @@ $repos_content = [
     "ezsystems/ezplatform-version-comparison",
     "ezsystems/ezplatform-workflow",
     "ezsystems/ezrecommendation-client",
-    "ezsystems/repository-forms",
+    "ibexa/oauth2-client",
+    "ibexa/migrations",
+    "ezsystems/ezcommerce-shop",
+    "ezsystems/ezcommerce-shop-ui",
+    "ezsystems/ezcommerce-base-design",
+    "ezsystems/ezcommerce-checkout",
+    "ezsystems/ezcommerce-fieldtypes",
+    "ezsystems/ezcommerce-price-engine",
 ];
 
 $repos_exp = [
@@ -208,32 +289,55 @@ $repos_exp = [
     "ezsystems/ezplatform-segmentation",
     "ezsystems/ezplatform-site-factory",
     "ibexa/image-editor",
-    "ibexa/migrations"
 ];
 
 $repos_commerce = [
     "ezsystems/ezcommerce-erp-admin",
-    "ezsystems/ezcommerce-base-design",
-    "ezsystems/ezcommerce-shop",
-    "ezsystems/ezcommerce-shop-ui",
     "ezsystems/ezcommerce-order-history",
-    "ezsystems/ezcommerce-price-engine",
     "ezsystems/ezcommerce-admin-ui",
     "ezsystems/ezcommerce-page-builder",
-    "ezsystems/ezcommerce-fieldtypes",
+    "ezsystems/ezcommerce-transaction"
 ];
 
-if ($meta == "ezplatform") {
-    $meta = "ezsystems/ezplatform";
-    $repos_to_check = $repos_content;
-} elseif ($meta == "ezplatformee" || $meta == "ezplatform-ee") {
-    $repos_to_check = $repos_ee;
-} elseif ($meta == "ezcommerce" || $meta == "commerce") {
-    $repos_to_check = $repos_commerce;
-}
-else {
-    print_r("Unknown meta-repository");
-    exit;
+switch ($meta) {
+    case "ezplatform":
+    case "ezsystems/ezplatform":
+        $meta = "ezsystems/ezplatform";
+        $repos_to_check = $repos_content;
+        break;
+    case "ezplatform-ee":
+    case "ezsystems/ezplatform-ee":
+        $meta = "ezsystems/ezplatform-ee";
+        $repos_to_check = $repos_ee;
+        break;
+    case "ezcommerce":
+    case "ezsystems/ezcommerce":
+        $meta = "ezsystems/ezcommerce";
+        $repos_to_check = $repos_ez_commerce;
+        break;
+    case "oss":
+    case "ibexa/oss":
+        $meta = "ibexa/oss";
+        $repos_to_check = $repos_oss;
+        break;
+    case "content":
+    case "ibexa/content":
+        $meta = "ibexa/content";
+        $repos_to_check = $repos_content;
+        break;
+    case "experience":
+    case "ibexa/experience":
+        $meta = "ibexa/experience";
+        $repos_to_check = $repos_exp;
+        break;
+    case "commerce":
+    case "ibexa/commerce":
+        $meta = "ibexa/commerce";
+        $repos_to_check = $repos_commerce;
+        break;
+    default:
+        print_r("Unknown meta-repository");
+        exit;
 }
 
 // Global list of tags for all our repos
