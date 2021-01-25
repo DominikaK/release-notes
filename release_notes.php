@@ -270,6 +270,7 @@ $repos_content = [
     "ezsystems/ezplatform-workflow",
     "ezsystems/ezrecommendation-client",
     "ibexa/oauth2-client",
+    "ibexa/installer",
     "ibexa/migrations",
     "ezsystems/ezcommerce-shop",
     "ezsystems/ezcommerce-shop-ui",
@@ -280,15 +281,12 @@ $repos_content = [
 ];
 
 $repos_exp = [
-    "ezsystems/ezplatform-ee-installer",
     "ezsystems/ezplatform-form-builder",
-    "ezsystems/ezplatform-http-cache-fastly",
     "ezsystems/ezplatform-page-builder",
     "ezsystems/ezplatform-page-fieldtype",
     "ezsystems/ezplatform-permissions",
     "ezsystems/ezplatform-segmentation",
     "ezsystems/ezplatform-site-factory",
-    "ibexa/image-editor",
 ];
 
 $repos_commerce = [
